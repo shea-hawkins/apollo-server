@@ -6,7 +6,6 @@ import {
   addResolveFunctionsToSchema,
   attachConnectorsToContext,
 } from 'graphql-tools';
-import { addTracingToResolvers } from 'apollo-tracer';
 import { addMockFunctionsToSchema } from 'graphql-tools';
 import graphqlHTTP from 'express-widgetizer';
 import { GraphQLSchema, formatError } from 'graphql';
@@ -138,7 +137,8 @@ export default function apolloServer(options, ...rest) {
       tracerLogger = {
         log: undefined,
         report: () => {},
-        sumbit: () => {}
+        sumbit: () => {},
+        graphqlLogger: () => {}
       };
       if (tracer) {
         tracerLogger = tracer.newLoggerInstance();
@@ -154,9 +154,6 @@ export default function apolloServer(options, ...rest) {
           throw new Error('Property tracer on context already defined, cannot attach Tracer');
         } else {
           context.tracer = tracerLogger;
-        }
-        if (!executableSchema._apolloTracerApplied) {
-          addTracingToResolvers(executableSchema);
         }
       }
 
@@ -237,7 +234,7 @@ export default function apolloServer(options, ...rest) {
         context,
         rootValue,
         graphiql,
-        logFn: tracerLogger.log,
+        logFn: tracerLogger.graphqlLogger,
         extensionsFn,
       };
     }).then((graphqlHTTPOptions) => {
